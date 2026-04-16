@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INPUT SOPIR - PT. HSL</title>
+    <style>
+        :root {
+            --primary: #0284c7;
+            --bg: #f0f9ff;
+            --white: #ffffff;
+        }
+        body {
+            font-family: sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 { color: #0369a1; text-align: center; margin-bottom: 5px; }
+        p { text-align: center; color: #64748b; margin-bottom: 20px; font-size: 14px; }
+
+        /* Step 1: Pilih Mobil */
+        .grid-pilih {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .btn-mobil {
+            padding: 20px 10px;
+            background: var(--white);
+            border: 2px solid #bae6fd;
+            border-radius: 10px;
+            font-weight: bold;
+            color: #0c4a6e;
+            font-size: 16px;
+        }
+
+        /* Step 2: Form Input & Tombol Aksi */
+        .card-input {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            display: none;
+        }
+        input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .btn-aksi {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        .status-info {
+            background: #e0f2fe;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+            color: #0369a1;
+        }
+
+        /* Style Tambahan untuk Tonase & Foto */
+        .preview-container {
+            width: 100%;
+            height: 200px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background: #f8fafc;
+            position: relative;
+        }
+        #img-preview {
+            max-width: 100%;
+            max-height: 100%;
+            display: none;
+        }
+        .btn-kamera {
+            background: #64748b;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            margin-bottom: 15px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .label-input {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            color: #64748b;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>DRIVER PT. HSL</h2>
+    <p id="sub-title">Silahkan pilih unit anda:</p>
+
+    <div id="step-pilih" class="grid-pilih">
+        </div>
+
+    <div id="step-update" class="card-input">
+        <div class="status-info" id="info-unit">PLAT: -</div>
+        
+        <div id="form-awal">
+    <input type="text" id="in-sopir" placeholder="Nama Sopir">
+    <input type="text" id="in-tujuan" placeholder="Tujuan Pengiriman">
+    <input type="text" id="in-barang" placeholder="Nama Barang">
+    
+    <label style="display:block; font-size:12px; font-weight:bold; color:#64748b; margin-bottom:5px;">MUATAN (TON):</label>
+    <input type="number" id="in-tonase" placeholder="Contoh: 25.5" step="0.1">
+
+    <label style="display:block; font-size:12px; font-weight:bold; color:#64748b; margin-bottom:5px;">FOTO SURAT JALAN:</label>
+    <div id="preview-box" style="width:100%; height:180px; border:2px dashed #cbd5e1; border-radius:10px; margin-bottom:10px; display:flex; justify-content:center; align-items:center; background:#f8fafc; overflow:hidden;">
+        <span id="text-placeholder" style="color:#94a3b8; font-size:14px;">Belum ada foto</span>
+        <img id="img-preview" src="" style="display:none; max-width:100%; max-height:100%;">
+    </div>
+
+    <input type="file" id="in-foto" accept="image/*" capture="camera" style="display: none;" onchange="window.previewFile()">
+    
+    <button type="button" onclick="document.getElementById('in-foto').click()" style="width:100%; padding:12px; background:#64748b; color:white; border:none; border-radius:8px; font-weight:bold; margin-bottom:15px; cursor:pointer;">
+        📸 AMBIL FOTO SURAT JALAN
+    </button>
+
+    <button class="btn-aksi" id="btn-submit" style="background: #3b82f6;" onclick="prosesAksi('OTW BERANGKAT')">MULAI JALAN SEKARANG</button>
+</div>
+
+        <div id="form-lanjutan" style="display: none;">
+            <p id="label-status" style="margin-bottom: 10px; font-weight: bold;"></p>
+            <button id="btn-lanjut" class="btn-aksi" onclick="logikaAlur()"></button>
+        </div>
+
+        <button onclick="logoutUnit()" style="margin-top: 20px; background: none; border: none; color: #94a3b8; width: 100%;">
+    ← Ganti Unit / Salah Pilih Mobil
+</button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyAZ2e-WKpiIIn3DkwuuO_v1FfY2Dhxsnrg",
+        authDomain: "system-hasan-lestari.firebaseapp.com",
+        databaseURL: "https://system-hasan-lestari-default-rtdb.asia-southeast1.firebasedatabase.app/",
+        projectId: "system-hasan-lestari",
+        storageBucket: "system-hasan-lestari.firebasestorage.app",
+        messagingSenderId: "341447120860",
+        appId: "1:341447120860:web:fcc93ac4c7320767cae119"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const platList = [
+        "B 9686 SFU", "D 9245 AJ", "D 9246 AJ", "D 9247 AJ",
+        "D 9094 AG", "D 9698 AG", "D 9803 AH", "D 9804 AG",
+        "D 9560 AG", "D 9561 AG9", "D 9737 AG", "D 9529 AI"
+    ];
+
+    let unitTerpilih = "";
+    let statusSekarang = "STANDBY";
+
+    // --- FUNGSI UTAMA (Dibuat Global agar bisa dipanggil tombol HTML) ---
+    
+    window.pilihUnit = function(plat) {
+        unitTerpilih = plat;
+        localStorage.setItem('myUnit_HSL', plat); // Simpan di memori HP
+        
+        const dbID = plat.replace(/\s+/g, '_'); 
+
+        onValue(ref(db, `pt_hsl/fleet/${dbID}`), (snapshot) => {
+            const data = snapshot.val();
+            document.getElementById('step-pilih').style.display = 'none';
+            document.getElementById('step-update').style.display = 'block';
+            document.getElementById('info-unit').innerText = "UNIT: " + plat;
+
+            if (data && data.status !== "STANDBY") {
+                statusSekarang = data.status;
+                tampilkanTombolLanjutan();
+            } else {
+                statusSekarang = "STANDBY";
+                document.getElementById('form-awal').style.display = 'block';
+                document.getElementById('form-lanjutan').style.display = 'none';
+            }
+        });
+    }
+
+// 1. Fungsi Preview Foto
+window.previewFile = function() {
+    const file = document.getElementById('in-foto').files[0];
+    const reader = new FileReader();
+
+    reader.onloadend = function() {
+        document.getElementById('img-preview').src = reader.result;
+        document.getElementById('img-preview').style.display = 'block';
+        document.getElementById('text-placeholder').style.display = 'none';
+    }
+
+    if (file) {
+        reader.readAsDataURL(file);
+    }
+}
+
+// 2. Fungsi Proses Aksi (Versi Update)
+window.prosesAksi = function(statusTarget) {
+    const sopir = document.getElementById('in-sopir').value;
+    const tujuan = document.getElementById('in-tujuan').value;
+    const barang = document.getElementById('in-barang').value;
+    const tonase = document.getElementById('in-tonase').value;
+    const fotoData = document.getElementById('img-preview').src; // Ini string Base64
+
+    if(!sopir || !tujuan || !tonase) return alert("Sopir, Tujuan, dan Tonase wajib diisi!");
+    if(!fotoData || fotoData === "") return alert("Foto Surat Jalan dulu, Bro!");
+
+    const btn = document.getElementById('btn-submit');
+    btn.innerText = "MENGIRIM...";
+    btn.disabled = true;
+
+    const dbID = unitTerpilih.replace(/\s+/g, '_');
+    const waktuSekarang = new Date().getTime();
+
+    // Kirim ke Firebase
+    set(ref(db, `pt_hsl/fleet/${dbID}`), {
+        plat: unitTerpilih,
+        sopir: sopir,
+        tujuan: tujuan,
+        barang: barang,
+        tonase: tonase,
+        fotoUrl: fotoData, // Kirim foto sebagai teks
+        status: statusTarget,
+        startTime: waktuSekarang
+    }).then(() => {
+        alert("Data Berhasil Terkirim!");
+        // Halaman otomatis update karena ada onValue
+    }).catch((err) => {
+        alert("Gagal: " + err);
+        btn.disabled = false;
+        btn.innerText = "MULAI JALAN SEKARANG";
+    });
+};
+
+    
+        window.logikaAlur = function() {
+        const dbID = unitTerpilih.replace(/\s+/g, '_');
+        const waktuSekarang = new Date().getTime();
+        let targetStatus = "";
+
+        if(statusSekarang === 'OTW BERANGKAT') targetStatus = 'LAMA BONGKAR';
+        else if(statusSekarang === 'LAMA BONGKAR') targetStatus = 'OTW PULANG';
+        else if(statusSekarang === 'OTW PULANG') {
+            update(ref(db, `pt_hsl/fleet/${dbID}`), { 
+                status: "STANDBY",
+                tujuan: "Menunggu Input...",
+                sopir: "-",
+                startTime: waktuSekarang 
+            });
+            alert("Tugas Selesai!");
+            return; // Biarkan tetap di layar unit tersebut
+        }
+
+        update(ref(db, `pt_hsl/fleet/${dbID}`), {
+            status: targetStatus,
+            startTime: waktuSekarang
+        });
+    };
+
+    window.logoutUnit = function() {
+        if(confirm("Yakin ingin mengganti unit mobil?")) {
+            localStorage.removeItem('myUnit_HSL');
+            window.location.reload();
+        }
+    }
+
+    function tampilkanTombolLanjutan() {
+        document.getElementById('form-awal').style.display = 'none';
+        document.getElementById('form-lanjutan').style.display = 'block';
+        const btn = document.getElementById('btn-lanjut');
+        
+        if(statusSekarang === 'OTW BERANGKAT') {
+            btn.innerText = "SAYA TIBA (MULAI BONGKAR)";
+            btn.style.background = "#eab308";
+        } else if(statusSekarang === 'LAMA BONGKAR') {
+            btn.innerText = "BONGKAR SELESAI (PULANG)";
+            btn.style.background = "#22c55e";
+        } else if(statusSekarang === 'OTW PULANG') {
+            btn.innerText = "SAMPAI DI POOL (FINISH)";
+            btn.style.background = "#ef4444";
+        }
+    }
+
+    // --- LOGIKA STARTUP (JALAN OTOMATIS SAAT BUKA WEB) ---
+    
+    // 1. Gambar tombol-tombol plat nomor di awal
+    const gridPilih = document.getElementById('step-pilih');
+    platList.forEach(plat => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-mobil';
+        btn.innerText = plat;
+        btn.onclick = () => window.pilihUnit(plat);
+        gridPilih.appendChild(btn);
+    });
+
+    // 2. Cek apakah ada unit yang tersimpan di memori HP
+    const savedUnit = localStorage.getItem('myUnit_HSL');
+    if (savedUnit) {
+        window.pilihUnit(savedUnit);
+    }
+</script>
+</body>
+</html>
