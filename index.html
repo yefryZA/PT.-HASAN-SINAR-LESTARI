@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1280">
+    <meta name="viewport" content="width=1280, initial-scale=0.3, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes">
     <title>COMMAND CENTER PT. HASAN SINAR LESTARI</title>
     <style>
     :root {
@@ -25,14 +25,15 @@
         font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         margin: 0;
         padding: 10px 20px;
-        /* Hapus height 100vh agar tidak terpotong saat zoom */
+        
+        /* MODIFIKASI CIMI DEWA */
+        width: 1280px; 
+        height: 100vh; /* Kunci tinggi sesuai layar */
+        overflow: hidden; /* MATIKAN SCROLL */
+        
         display: flex;
         flex-direction: column;
         box-sizing: border-box;
-        
-        /* MODIFIKASI CIMI: Paksa lebar layar agar HP otomatis zoom-out */
-        width: 1280px; 
-        overflow-x: hidden; 
     }
 
     header {
@@ -191,10 +192,7 @@
         <span>COMMAND CENTER PT. HASAN SINAR LESTARI</span>
         <div style="display: flex; align-items: center; gap: 15px;">
             <span style="font-size: 14px; color: var(--text-gray);" id="live-clock"></span>
-            <button onclick="aktifkanModeDewa()" style="padding: 8px 15px; background: var(--accent-gold); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
-                🖥️ MODE FULLSCREEN
-            </button>
-        </div>
+            </div>
     </header>
 
     <div class="grid-container" id="fleet-grid">
@@ -325,13 +323,17 @@
             }
 
             const welcome = document.getElementById('welcome-screen');
-            welcome.style.transition = "opacity 0.5s ease";
-            welcome.style.opacity = "0";
-            setTimeout(() => { welcome.style.display = "none"; }, 500);
-        } catch (err) {
-            document.getElementById('welcome-screen').style.display = "none";
-        }
-    };
+        welcome.style.opacity = "0";
+        setTimeout(() => { 
+            welcome.style.display = "none";
+            // TRIK: Paksa scroll ke atas agar posisi pas di tengah
+            window.scrollTo(0, 0);
+        }, 500);
+
+    } catch (err) {
+        document.getElementById('welcome-screen').style.display = "none";
+    }
+};
 </script>
 </body>
 </html>
