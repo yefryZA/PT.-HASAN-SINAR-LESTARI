@@ -131,13 +131,18 @@
 
     <header>
         <span>COMMAND CENTER PT. HASAN SINAR LESTARI</span>
-        <span style="font-size: 14px; color: var(--text-gray);" id="live-clock"></span>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span style="font-size: 14px; color: var(--text-gray);" id="live-clock"></span>
+            <button onclick="aktifkanModeDewa()" style="padding: 8px 15px; background: var(--accent-gold); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+                🖥️ MODE FULLSCREEN
+            </button>
+        </div>
     </header>
 
     <div class="grid-container" id="fleet-grid">
         </div>
 
-<script type="module">
+    <script type="module">
     // 1. IMPORT FIREBASE SDK
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -211,23 +216,47 @@
 
     // 5. UPDATE STOPWATCH & JAM DIGITAL (SETIAP DETIK)
     setInterval(() => {
-        // Update Semua Stopwatch Mobil
-        document.querySelectorAll('.timer').forEach(t => {
-            const start = parseInt(t.getAttribute('data-start'));
-            const diff = new Date().getTime() - start;
-            
-            const h = Math.floor(diff / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
-            
-            t.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        });
+            // Update Semua Stopwatch Mobil
+            document.querySelectorAll('.timer').forEach(t => {
+                const start = parseInt(t.getAttribute('data-start'));
+                if (start > 0) {
+                    const diff = new Date().getTime() - start;
+                    const h = Math.floor(diff / 3600000);
+                    const m = Math.floor((diff % 3600000) / 60000);
+                    const s = Math.floor((diff % 60000) / 1000);
+                    t.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                } else {
+                    t.innerText = "00:00:00";
+                }
+            });
 
-        // Update Jam Real-time di Header
-        const now = new Date();
-        const jamHeader = document.getElementById('live-clock');
-        if(jamHeader) jamHeader.innerText = now.toLocaleString('id-ID');
-    }, 1000);
-</script>
+            // Update Jam Real-time di Header
+            const now = new Date();
+            const jamHeader = document.getElementById('live-clock');
+            if(jamHeader) jamHeader.innerText = now.toLocaleString('id-ID');
+        }, 1000);
+
+        // Letakkan ini di DALAM <script type="module"> paling bawah
+window.aktifkanModeDewa = async function() {
+    try {
+        const elem = document.documentElement;
+
+        // 1. Minta Fullscreen dulu
+        if (elem.requestFullscreen) {
+            await elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+            await elem.webkitRequestFullscreen();
+        }
+
+        // 2. Setelah Fullscreen, baru paksa Landscape
+        if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock('landscape');
+        }
+    } catch (err) {
+        console.error("Gagal Mode Dewa:", err);
+        alert("Klik 'Izinkan' atau putar HP manual ke Landscape ya, Bro!");
+    }
+};
+    </script>
 </body>
 </html>
