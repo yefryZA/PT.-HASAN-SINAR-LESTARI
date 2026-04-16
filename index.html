@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1280">
+    <title>COMMAND CENTER PT. HASAN SINAR LESTARI</title>
+    <style>
+    :root {
+        --bg: #e0f2fe; /* Biru Langit Muda */
+        --header-bg: #ffffff;
+        --card: #ffffff;
+        --border: #bae6fd;
+        --text-dark: #0369a1;
+        --text-gray: #64748b;
+        --green: #22c55e;
+        --blue: #3b82f6;
+        --gold: #eab308; 
+        --red: #ef4444;
+        --accent-gold: #b45309;
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--text-dark);
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        margin: 0;
+        padding: 10px 20px;
+        /* Hapus height 100vh agar tidak terpotong saat zoom */
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+        
+        /* MODIFIKASI CIMI: Paksa lebar layar agar HP otomatis zoom-out */
+        width: 1280px; 
+        overflow-x: hidden; 
+    }
+
+    header {
+        text-align: left;
+        padding: 10px 0;
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        color: var(--accent-gold);
+        border-bottom: 3px solid var(--accent-gold);
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%; /* Pastikan header ikut lebar body */
+    }
+
+    .grid-container {
+        display: grid;
+        /* MODIFIKASI CIMI: Gunakan 3 Kolom agar lebih ringkas dalam satu layar */
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 12px;
+        flex-grow: 1;
+        padding-bottom: 10px;
+        width: 100%;
+    }
+
+    .unit-card {
+        background: var(--card);
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px; /* Padding sedikit diperlebar */
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        min-height: 100px; /* Jaga tinggi minimal */
+    }
+
+    .info-main {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .plat {
+        font-size: 20px;
+        font-weight: 900;
+        color: #0c4a6e;
+        letter-spacing: 0.5px;
+    }
+
+    .sopir {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-gray);
+    }
+
+    .tujuan {
+        font-size: 13px;
+        color: var(--blue);
+        font-weight: 500;
+        margin-top: 2px;
+    }
+
+    .status-timer {
+        text-align: right;
+    }
+
+    .badge {
+        font-size: 11px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        font-weight: 800;
+        color: #fff;
+        display: inline-block;
+        margin-bottom: 5px;
+    }
+
+    .timer {
+        font-family: 'Consolas', monospace;
+        font-size: 24px;
+        font-weight: bold;
+        color: #1e293b;
+    }
+
+    /* Border warna kiri sesuai status */
+    .status-otw-berangkat { border-left: 8px solid var(--blue); }
+    .status-lama-bongkar { border-left: 8px solid var(--gold); }
+    .status-otw-pulang { border-left: 8px solid var(--green); }
+    .status-standby { border-left: 8px solid var(--red); }
+
+</style>
+</head>
+<body>
+
+    <header>
+        <span>COMMAND CENTER PT. HASAN SINAR LESTARI</span>
+        <span style="font-size: 14px; color: var(--text-gray);" id="live-clock"></span>
+    </header>
+
+    <div class="grid-container" id="fleet-grid">
+        </div>
+
+<script type="module">
+    // 1. IMPORT FIREBASE SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // 2. CONFIG FIREBASE HABI (Sesuai Proyek HASAN LESTARI)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAZ2e-WKpiIIn3DkwuuO_v1FfY2Dhxsnrg",
+        authDomain: "system-hasan-lestari.firebaseapp.com",
+        databaseURL: "https://system-hasan-lestari-default-rtdb.asia-southeast1.firebasedatabase.app/",
+        projectId: "system-hasan-lestari",
+        storageBucket: "system-hasan-lestari.firebasestorage.app",
+        messagingSenderId: "341447120860",
+        appId: "1:341447120860:web:fcc93ac4c7320767cae119"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Daftar Plat yang sudah dipaku (12 Unit)
+    const platList = [
+        "B 9686 SFU", "D 9245 AJ", "D 9246 AJ", "D 9247 AJ",
+        "D 9094 AG", "D 9698 AG", "D 9803 AH", "D 9804 AG",
+        "D 9560 AG", "D 9561 AG9", "D 9737 AG", "D 9529 AI"
+    ];
+
+    const grid = document.getElementById('fleet-grid');
+
+    // 3. FUNGSI UNTUK MENDAPATKAN WARNA BADGE
+    function getColor(status) {
+        if(status === "STANDBY") return "red";
+        if(status === "LAMA BONGKAR") return "gold";
+        if(status === "OTW BERANGKAT") return "blue";
+        return "green"; // OTW PULANG
+    }
+
+    // 4. LISTEN DATA DARI FIREBASE (REAL-TIME TANPA REFRESH)
+    onValue(ref(db, 'pt_hsl/fleet'), (snapshot) => {
+        const firebaseData = snapshot.val() || {};
+        grid.innerHTML = ""; // Bersihkan grid sebelum render ulang
+
+        platList.forEach((plat, index) => {
+            const dbID = plat.replace(/\s+/g, '_'); // Sesuaikan ID dengan format di Firebase
+            
+            // Ambil data dari firebase, kalau belum ada isinya pakai default (Standby)
+            const unit = firebaseData[dbID] || {
+                plat: plat,
+                sopir: "-",
+                tujuan: "Menunggu Input...",
+                status: "STANDBY",
+                startTime: new Date().getTime()
+            };
+
+            const statusClass = unit.status.toLowerCase().replace(/\s+/g, '-');
+            
+            grid.innerHTML += `
+                <div class="unit-card status-${statusClass}">
+                    <div class="info-main">
+                        <span class="plat">${unit.plat}</span>
+                        <span class="sopir">${unit.sopir}</span>
+                        <span class="tujuan">${unit.tujuan}</span>
+                    </div>
+                    <div class="status-timer">
+                        <span class="badge" style="background:var(--${getColor(unit.status)})">${unit.status}</span>
+                        <div class="timer" data-start="${unit.startTime}">00:00:00</div>
+                    </div>
+                </div>
+            `;
+        });
+    });
+
+    // 5. UPDATE STOPWATCH & JAM DIGITAL (SETIAP DETIK)
+    setInterval(() => {
+        // Update Semua Stopwatch Mobil
+        document.querySelectorAll('.timer').forEach(t => {
+            const start = parseInt(t.getAttribute('data-start'));
+            const diff = new Date().getTime() - start;
+            
+            const h = Math.floor(diff / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            
+            t.innerText = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        });
+
+        // Update Jam Real-time di Header
+        const now = new Date();
+        const jamHeader = document.getElementById('live-clock');
+        if(jamHeader) jamHeader.innerText = now.toLocaleString('id-ID');
+    }, 1000);
+</script>
+</body>
+</html>
