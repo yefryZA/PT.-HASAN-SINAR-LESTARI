@@ -139,6 +139,27 @@
     margin-top: 5px;
 }
 
+/* Gaya Tombol Simpan di dalam Modal */
+.btn-download-sj {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 25px;
+    background-color: #22c55e; /* Warna Hijau */
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: 0.3s;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-download-sj:hover {
+    background-color: #16a34a;
+    transform: scale(1.05);
+}
+
 .tonase {
     font-size: 13px;
     font-weight: bold;
@@ -274,19 +295,24 @@
     }
 
     // --- FUNGSI POPUP FOTO (MODAL) ---
-    window.bukaFoto = function(url, plat) {
-        if(!url || url === "" || url === "-") {
-            alert("Sopir belum upload Surat Jalan untuk unit " + plat);
-            return;
-        }
-        document.getElementById("myModal").style.display = "block";
-        document.getElementById("img-sj").src = url;
-        document.getElementById("caption-sj").innerText = "Surat Jalan Unit: " + plat;
+   window.bukaFoto = function(url, plat) {
+    if(!url || url === "" || url === "-") {
+        alert("Sopir belum upload Surat Jalan untuk unit " + plat);
+        return;
     }
-
-    window.tutupModal = function() {
-        document.getElementById("myModal").style.display = "none";
-    }
+    
+    // Tampilkan Modal
+    document.getElementById("myModal").style.display = "block";
+    document.getElementById("img-sj").src = url;
+    
+    // Update Caption dengan Tombol Download
+    document.getElementById("caption-sj").innerHTML = `
+        <div style="margin-bottom: 10px;">Surat Jalan Unit: ${plat}</div>
+        <a href="${url}" download="SJ_${plat}.jpg" target="_blank" class="btn-download-sj">
+            💾 SIMPAN KE GALERI HP
+        </a>
+    `;
+}
 
     // 4. LISTEN DATA DARI FIREBASE
     onValue(ref(db, 'pt_hsl/fleet'), (snapshot) => {
