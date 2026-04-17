@@ -234,43 +234,52 @@ window.previewFile = function() {
 }
 
 // 2. Fungsi Proses Aksi (Versi Update)
-window.prosesAksi = function(statusTarget) {
+window.prosesAksi = async function(statusTarget) {
     const sopir = document.getElementById('in-sopir').value;
     const tujuan = document.getElementById('in-tujuan').value;
     const barang = document.getElementById('in-barang').value;
     const tonase = document.getElementById('in-tonase').value;
-    const fotoData = document.getElementById('img-preview').src; // Ini string Base64
+    const fotoData = document.getElementById('img-preview').src; 
 
     if(!sopir || !tujuan || !tonase) return alert("Sopir, Tujuan, dan Tonase wajib diisi!");
-    if(!fotoData || fotoData === "") return alert("Foto Surat Jalan dulu, Bro!");
+    if(!fotoData || fotoData === "" || fotoData.includes('placeholder')) return alert("Foto Surat Jalan dulu, Bro!");
 
     const btn = document.getElementById('btn-submit');
-    btn.innerText = "MENGIRIM...";
+    btn.innerText = "MENGOMPRES & MENGIRIM..."; // Biar sopir tahu prosesnya
     btn.disabled = true;
 
-    const dbID = unitTerpilih.replace(/\s+/g, '_');
-    const waktuSekarang = new Date().getTime();
+    try {
+        // PROSES KOMPRESI DIMULAI
+        const fotoKecil = await kompresFoto(fotoData);
+        
+        const dbID = unitTerpilih.replace(/\s+/g, '_');
+        const waktuSekarang = new Date().getTime();
 
-    // Kirim ke Firebase
-    set(ref(db, `pt_hsl/fleet/${dbID}`), {
-        plat: unitTerpilih,
-        sopir: sopir,
-        tujuan: tujuan,
-        barang: barang,
-        tonase: tonase,
-        fotoUrl: fotoData, // Kirim foto sebagai teks
-        status: statusTarget,
-        startTime: waktuSekarang
-    }).then(() => {
-        alert("Data Berhasil Terkirim!");
-        // Halaman otomatis update karena ada onValue
-    }).catch((err) => {
-        alert("Gagal: " + err);
+        // Kirim ke Firebase (Pakai fotoKecil yang sudah diet)
+        set(ref(db, `pt_hsl/fleet/${dbID}`), {
+            plat: unitTerpilih,
+            sopir: sopir,
+            tujuan: tujuan,
+            barang: barang,
+            tonase: tonase,
+            fotoUrl: fotoKecil, // PAKAI YANG SUDAH KOMPRES
+            status: statusTarget,
+            startTime: waktuSekarang
+        }).then(() => {
+            alert("Data Berhasil Terkirim! (Hemat Kuota)");
+            // Halaman otomatis update karena ada onValue
+        }).catch((err) => {
+            alert("Gagal Kirim ke Database: " + err);
+            btn.disabled = false;
+            btn.innerText = "MULAI JALAN SEKARANG";
+        });
+
+    } catch (err) {
+        alert("Gagal Kompres Foto: " + err);
         btn.disabled = false;
         btn.innerText = "MULAI JALAN SEKARANG";
-    });
+    }
 };
-
     
         window.logikaAlur = function() {
         const dbID = unitTerpilih.replace(/\s+/g, '_');
@@ -340,6 +349,40 @@ window.prosesAksi = function(statusTarget) {
     if (savedUnit) {
         window.pilihUnit(savedUnit);
     }
+
+    function kompresFoto(base64Str, maxWidth = 800, maxHeight = 800) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.src = base64Str;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            // Logika menjaga rasio foto agar tidak gepeng
+            if (width > height) {
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+            } else {
+                if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // 0.6 artinya kualitas 60% (sudah cukup tajam tapi ringan pol!)
+            const hasilKompres = canvas.toDataURL('image/jpeg', 0.6);
+            resolve(hasilKompres);
+        };
+    });
+}
 </script>
 </body>
 </html>
