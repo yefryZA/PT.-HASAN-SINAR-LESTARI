@@ -295,23 +295,41 @@
     }
 
     // --- FUNGSI POPUP FOTO (MODAL) ---
-   window.bukaFoto = function(url, plat) {
+window.bukaFoto = function(url, plat) {
     if(!url || url === "" || url === "-") {
         alert("Sopir belum upload Surat Jalan untuk unit " + plat);
         return;
     }
     
+    const modal = document.getElementById("myModal");
+    const img = document.getElementById("img-sj");
+    const caption = document.getElementById("caption-sj");
+
     // Tampilkan Modal
-    document.getElementById("myModal").style.display = "block";
-    document.getElementById("img-sj").src = url;
+    modal.style.display = "block";
+    img.src = url;
     
-    // Update Caption dengan Tombol Download
-    document.getElementById("caption-sj").innerHTML = `
+    // Update Caption & Tombol Download
+    caption.innerHTML = `
         <div style="margin-bottom: 10px;">Surat Jalan Unit: ${plat}</div>
         <a href="${url}" download="SJ_${plat}.jpg" target="_blank" class="btn-download-sj">
             💾 SIMPAN KE GALERI HP
         </a>
     `;
+
+    // LOGIKA TAMBAHAN: Klik area hitam (di luar gambar) untuk tutup
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            tutupModal();
+        }
+    };
+}
+
+// Pastikan fungsi tutupModal ini ada dan kuat!
+window.tutupModal = function() {
+    const modal = document.getElementById("myModal");
+    modal.style.display = "none";
+    document.getElementById("img-sj").src = ""; // Bersihkan gambar biar enteng
 }
 
     // 4. LISTEN DATA DARI FIREBASE
