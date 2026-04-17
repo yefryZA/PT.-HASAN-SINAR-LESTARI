@@ -281,10 +281,13 @@ window.prosesAksi = function(statusTarget) {
         else if(statusSekarang === 'LAMA BONGKAR') targetStatus = 'OTW PULANG';
         else if(statusSekarang === 'OTW PULANG') {
             update(ref(db, `pt_hsl/fleet/${dbID}`), { 
-                status: "STANDBY",
-                tujuan: "Menunggu Input...",
-                sopir: "-",
-                startTime: waktuSekarang 
+              status: "STANDBY",
+            tujuan: "Menunggu Input...",
+            sopir: "-",
+            barang: "-",        // Reset Nama Barang
+            tonase: 0,          // Reset Tonase jadi 0
+            fotoUrl: "-",
+            startTime: waktuSekarang 
             });
             alert("Tugas Selesai!");
             return; // Biarkan tetap di layar unit tersebut
